@@ -87,7 +87,6 @@ if __name__ == '__main__':
     parser.add_argument('-ds', '--decay_step', type=int, default=30)
     parser.add_argument('-dg', '--decay_gamma', type=float, default=0.1)
     parser.add_argument('-log', '--log_interval', type=int, default=50)
-    parser.add_argument('-eval', '--eval_interval', type=int, default=1)
     parser.add_argument('--train_size', type=int, default=2000)
     parser.add_argument('--test_size', type=int, default=200)
     parser.add_argument('--seed', type=int, default=0)
