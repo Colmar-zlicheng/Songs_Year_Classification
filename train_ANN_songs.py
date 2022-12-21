@@ -8,6 +8,7 @@ from lib.utils.misc import bar_perfixes
 from torch.utils.tensorboard import SummaryWriter
 from lib.utils.logger import logger
 from lib.model.Songs_Years import Songs_Years
+from lib.utils.save_results import save_results_ANN
 
 
 def ANN_worker(arg, summary):
@@ -75,8 +76,8 @@ def ANN_worker(arg, summary):
     save_path = os.path.join('./exp/ANN', arg.exp_id, 'model.ckpt')
     torch.save(model.state_dict(), save_path)
     logger.info("-----successfully save checkpoints-----")
-    # save_results_ANN(arg=arg, val_acc=val_acc, test_acc=acc, exp=save_dir)
-    # print("-----successfully save results-----")
+    save_results_ANN(arg=arg, train_acc=train_acc, test_acc=acc)
+    logger.info("-----successfully save results-----")
 
 
 if __name__ == '__main__':
