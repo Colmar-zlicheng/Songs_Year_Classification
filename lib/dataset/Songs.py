@@ -10,11 +10,12 @@ from termcolor import colored
 
 class Songs(torch.utils.data.Dataset):
 
-    def __init__(self, data_split='train', train_size=2000, test_size=200, seed=0):
+    def __init__(self, data_split='train', device='cpu', train_size=2000, test_size=200, seed=0):
         super().__init__()
         self.root = './data'
         self.path = './data/songs.csv'
         self.data_split = data_split
+        self.device = device
         self.data = self.Songs_whole(train_size=train_size, test_size=test_size, seed=seed)
 
     def Songs_whole(self, train_size=2000, test_size=200, seed=0):
@@ -108,11 +109,11 @@ class Songs(torch.utils.data.Dataset):
     def __getitem__(self, item):
         sample = dict()
         if self.data_split == 'train':
-            sample['timbre_avg'] = self.data['timbre_avg_train'][item]
-            sample['timbre_cov'] = self.data['timbre_cov_train'][item]
-            sample['year'] = self.data['year_train'][item]
+            sample['timbre_avg'] = self.data['timbre_avg_train'][item].to(self.device)
+            sample['timbre_cov'] = self.data['timbre_cov_train'][item].to(self.device)
+            sample['year'] = self.data['year_train'][item].to(self.device)
         else:
-            sample['timbre_avg'] = self.data['timbre_avg_test'][item]
-            sample['timbre_cov'] = self.data['timbre_cov_test'][item]
-            sample['year'] = self.data['year_test'][item]
+            sample['timbre_avg'] = self.data['timbre_avg_test'][item].to(self.device)
+            sample['timbre_cov'] = self.data['timbre_cov_test'][item].to(self.device)
+            sample['year'] = self.data['year_test'][item].to(self.device)
         return sample
