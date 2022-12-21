@@ -51,7 +51,7 @@ def ANN_worker(arg, summary):
         train_acc = 100 * correct / total
         summary.add_scalar(f"scalar/train_acc", train_acc, global_step=epoch_idx, walltime=None)
         scheduler.step()
-        print(f"Current LR: {[group['lr'] for group in optimizer.param_groups]}, Train Accuracy: {train_acc}")
+        print(f"Current LR: {[group['lr'] for group in optimizer.param_groups]}, Train Accuracy: {'%.2f' % train_acc}%")
 
     with torch.no_grad():
         correct = 0
@@ -66,7 +66,7 @@ def ANN_worker(arg, summary):
             total += input['year'].size(0)
             correct += (predicted == input['year']).sum().item()
             acc = 100 * correct / total
-        print('Accuracy on test set: {} %'.format(acc))
+        print('Accuracy on test set: {} %'.format('%.2f' % acc))
         save_acc_path = os.path.join('./exp/ANN', arg.exp_id, 'acc_test_txt')
         with open(save_acc_path, 'w') as ff:
             ff.write("Correct_test:" + str(correct) + '\n')
