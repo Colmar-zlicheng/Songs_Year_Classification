@@ -3,30 +3,40 @@ import time
 import torch
 import argparse
 from lib.utils.etqdm import etqdm
-from lib.dataset.Songs import Songs
+from lib.dataset.Songs import Songs, Songs_Total
 from lib.utils.misc import bar_perfixes
 from torch.utils.tensorboard import SummaryWriter
 from lib.utils.logger import logger
-from lib.model.Songs_Years import Songs_Years
+from lib.model.Songs_Years import Songs_Years, SY_Baseline
 from lib.utils.save_results import save_results_ANN
 
 
 def ANN_worker(arg, summary):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logger.info(f"Use device: {device}")
+    if arg.big_dataset is True:
+        begin_year = 1922
+        num_years = 90
+        train_data = Songs_Total(data_split='train', device=device, seed=arg.seed)
+        test_data = Songs_Total(data_split='test', device=device, seed=arg.seed)
 
-    train_data = Songs(data_split='train', train_size=arg.train_size, test_size=arg.test_size, device=device, seed=arg.seed)
+    else:
+        begin_year = 1969
+        num_years = 42
+        train_data = Songs(data_split='train', train_size=arg.train_size, test_size=arg.test_size, device=device, seed=arg.seed)
+        test_data = Songs(data_split='test', train_size=arg.train_size, test_size=arg.test_size, device=device, seed=arg.seed)
     train_loader = torch.utils.data.DataLoader(dataset=train_data,
                                                batch_size=arg.batch_size,
                                                shuffle=True,
                                                drop_last=True)
-    test_data = Songs(data_split='test', train_size=arg.train_size, test_size=arg.test_size, device=device, seed=arg.seed)
     test_loader = torch.utils.data.DataLoader(dataset=test_data,
                                               batch_size=arg.batch_size,
                                               shuffle=False,
                                               drop_last=False)
-
-    model = Songs_Years(num_years=42).to(device)
+    if arg.model == 'Songs':
+        model = Songs_Years(num_years=num_years, begin_year=begin_year).to(device)
+    else:
+        model = SY_Baseline(num_years=num_years, begin_year=begin_year).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=arg.learning_rate, weight_decay=0.0)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, arg.decay_step, arg.decay_gamma)
 
@@ -45,7 +55,7 @@ def ANN_worker(arg, summary):
             if step_idx % arg.log_interval == 0:
                 summary.add_scalar(f"scalar/loss", loss, global_step=step_idx, walltime=None)
             _, predicted = torch.max(pred.data, 1)
-            predicted += 1969
+            predicted += begin_year
             total += input['year'].size(0)
             correct += (predicted == input['year']).sum().item()
         train_acc = 100 * correct / total
@@ -62,7 +72,7 @@ def ANN_worker(arg, summary):
             pred, loss = model(input)
             test_bar.set_description(f"{bar_perfixes['test']} Loss {'%.12f' % loss}")
             _, predicted = torch.max(pred.data, 1)
-            predicted += 1969
+            predicted += begin_year
             total += input['year'].size(0)
             correct += (predicted == input['year']).sum().item()
             acc = 100 * correct / total
@@ -88,10 +98,14 @@ if __name__ == '__main__':
     parser.add_argument('-ds', '--decay_step', type=int, default=30)
     parser.add_argument('-dg', '--decay_gamma', type=float, default=0.1)
     parser.add_argument('-log', '--log_interval', type=int, default=50)
-    parser.add_argument('--train_size', type=int, default=2000)
-    parser.add_argument('--test_size', type=int, default=200)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('-exp', '--exp_id', type=str)
+    parser.add_argument('-bd', '--big_dataset', action='store_true', help="use big dataset")
+    parser.add_argument('--train_size', type=int, default=2000)
+    parser.add_argument('--test_size', type=int, default=200)
+    parser.add_argument('-m', '--model', type=str, default='Songs',
+                        choices=['Songs', 'baseline'],
+                        help="run whole model or baseline")
 
     if not os.path.exists('./exp'):
         os.mkdir('./exp')
@@ -105,7 +119,17 @@ if __name__ == '__main__':
     if arg.exp_id is not None:
         arg.exp_id = f"{arg.exp_id}_{timestamp}"
     else:
-        arg.exp_id = f"Songs_e{arg.epoch_size}_d{arg.decay_step}-{arg.decay_gamma}_{timestamp}"
+        if arg.model == 'Songs':
+            model_name = 'Songs'
+        else:
+            model_name = 'Baseline'
+        if arg.big_dataset is True:
+            dataset_name = 'Big'
+            arg.train_size = 463715
+            arg.test_size = 51630
+        else:
+            dataset_name = 'Small'
+        arg.exp_id = f"{model_name}_{dataset_name}_{arg.epoch_size}_d{arg.decay_step}-{arg.decay_gamma}_{timestamp}"
 
     exp_path = os.path.join('./exp/ANN', arg.exp_id)
     logger.set_log_file(exp_path, arg.exp_id)
