@@ -6,9 +6,10 @@ from lib.utils.misc import param_size
 
 class Songs_Years(nn.Module):
 
-    def __init__(self, num_years=42):
+    def __init__(self, num_years=42, begin_year=1969):
         super().__init__()
         self.name = type(self).__name__
+        self.begin_year = begin_year
         self.bn_avg = nn.BatchNorm1d(12)
         self.bn_cov = nn.BatchNorm1d(78)
         self.avg_encoder = nn.Sequential(nn.Linear(12, 128), nn.ReLU(), nn.Linear(128, 12))
@@ -32,6 +33,16 @@ class Songs_Years(nn.Module):
         feature = torch.cat([avg_coder, cov_coder], dim=1)  # [B, 256]
         pred = self.classification_layer(feature)
 
-        year = input['year'] - 1969
+        year = input['year'] - self.begin_year
         loss = self.compute_loss(pred, year)
+        return pred, loss
+
+
+class SY_Baseline(nn.Module):
+    def __init__(self, num_years=90, begin_year=1922):
+        super().__init__()
+
+    def forward(self, input):
+        pred = 0
+        loss =0
         return pred, loss
