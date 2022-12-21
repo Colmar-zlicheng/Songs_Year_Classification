@@ -71,10 +71,10 @@ def ANN_worker(arg, summary):
             ff.write("Correct_test:" + str(correct) + '\n')
             ff.write("Accuracy_test:" + str(acc) + '\n')
 
-    print("-----beginning save checkpoints and results-----")
+    logger.info("-----beginning save checkpoints and results-----")
     save_path = os.path.join('./exp/ANN', arg.exp_id, 'model.ckpt')
     torch.save(model.state_dict(), save_path)
-    print("-----successfully save checkpoints-----")
+    logger.info("-----successfully save checkpoints-----")
     # save_results_ANN(arg=arg, val_acc=val_acc, test_acc=acc, exp=save_dir)
     # print("-----successfully save results-----")
 
@@ -82,9 +82,9 @@ def ANN_worker(arg, summary):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-b', '--batch_size', type=int, default=100)
-    parser.add_argument('-e', '--epoch_size', type=int, default=15)
+    parser.add_argument('-e', '--epoch_size', type=int, default=50)
     parser.add_argument('-lr', '--learning_rate', type=float, default=0.001)
-    parser.add_argument('-ds', '--decay_step', type=int, default=5)
+    parser.add_argument('-ds', '--decay_step', type=int, default=30)
     parser.add_argument('-dg', '--decay_gamma', type=float, default=0.1)
     parser.add_argument('-log', '--log_interval', type=int, default=50)
     parser.add_argument('-eval', '--eval_interval', type=int, default=1)
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     if arg.exp_id is not None:
         arg.exp_id = f"{arg.exp_id}_{timestamp}"
     else:
-        arg.exp_id = f"dev_{timestamp}"
+        arg.exp_id = f"Songs_e{arg.epoch_size}_d{arg.decay_step}-{arg.decay_gamma}_{timestamp}"
 
     exp_path = os.path.join('./exp/ANN', arg.exp_id)
     logger.set_log_file(exp_path, arg.exp_id)
