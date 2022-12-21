@@ -10,19 +10,19 @@ from termcolor import colored
 
 class Songs(torch.utils.data.Dataset):
 
-    def __init__(self, data_split='train', seed=0, train_size=2000, test_size=200):
+    def __init__(self, data_split='train', train_size=2000, test_size=200, seed=0):
         super().__init__()
         self.root = './data'
         self.path = './data/songs.csv'
         self.data_split = data_split
-        self.data = self.Songs_whole(seed, train_size, test_size)
+        self.data = self.Songs_whole(train_size=train_size, test_size=test_size, seed=seed)
 
-    def Songs_whole(self, seed=0, train_size=2000, test_size=200):
+    def Songs_whole(self, train_size=2000, test_size=200, seed=0):
         # 1969-2010: train_size + test_size for each year
         # train_size + test_size should less than 2200
         cache_name = f"data_dict_{train_size}+{test_size}.pkl"
         cache_path = os.path.join(self.root, cache_name)
-        torch.manual_seed(0)
+        torch.manual_seed(seed)
         if not os.path.exists(cache_path):
             logger.info("Cache not exist, beginning generate and save data into {}".format(cache_path))
             data_raw = pd.read_csv(self.path)
@@ -100,17 +100,19 @@ class Songs(torch.utils.data.Dataset):
 
     def __len__(self):
         if self.data_split == 'train':
-            self.len = len(self.data['label_train'])
+            self.len = len(self.data['year_train'])
         else:
-            self.len = len(self.data['label_test'])
+            self.len = len(self.data['year_test'])
         return self.len
 
     def __getitem__(self, item):
         sample = dict()
-        sample['timbre_avg_train'] = self.data['timbre_avg_train'][item]
-        sample['timbre_avg_test'] = self.data['timbre_avg_test'][item]
-        sample['timbre_cov_train'] = self.data['timbre_cov_train'][item]
-        sample['timbre_cov_test'] = self.data['timbre_cov_test'][item]
-        sample['label_train'] = self.data['label_train'][item]
-        sample['label_test'] = self.data['label_test'][item]
+        if self.data_split == 'train':
+            sample['timbre_avg'] = self.data['timbre_avg_train'][item]
+            sample['timbre_cov'] = self.data['timbre_cov_train'][item]
+            sample['year'] = self.data['year_train'][item]
+        else:
+            sample['timbre_avg'] = self.data['timbre_avg_test'][item]
+            sample['timbre_cov'] = self.data['timbre_cov_test'][item]
+            sample['year'] = self.data['year_test'][item]
         return sample
