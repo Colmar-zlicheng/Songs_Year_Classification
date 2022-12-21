@@ -53,7 +53,7 @@ class Songs(torch.utils.data.Dataset):
                 for i_avg in range(12):
                     year_bar.set_description(f"year:{colored(f'{y}', 'white', attrs=['bold'])}, avg:{i_avg}")
                     timbre_avg_i = f"timbre_avg_{i_avg}"
-                    timbre_avg_y = torch.tensor(data_raw[timbre_avg_i])[index_y]  # [train_size+test_size, 1]
+                    timbre_avg_y = torch.tensor(data_raw[timbre_avg_i], dtype=torch.float32)[index_y]
                     timbre_avg_train_y.append(timbre_avg_y[:train_size])
                     timbre_avg_test_y.append(timbre_avg_y[train_size:])
                 # timbre_avg_train_y: [train_size, 12], timbre_avg_test_y: [test_size, 12]
@@ -67,7 +67,7 @@ class Songs(torch.utils.data.Dataset):
                 for i_cov in range(78):
                     year_bar.set_description(f"year:{colored(f'{y}', 'white', attrs=['bold'])}, cov:{i_cov}")
                     timbre_cov_i = f"timbre_cov_{i_cov}"
-                    timbre_cov_y = torch.tensor(data_raw[timbre_cov_i])[index_y]
+                    timbre_cov_y = torch.tensor(data_raw[timbre_cov_i], dtype=torch.float32)[index_y]
                     timbre_cov_train_y.append(timbre_cov_y[:train_size])
                     timbre_cov_test_y.append(timbre_cov_y[train_size:])
                 # timbre_cov_train_y: [train_size, 78], timbre_cov_test_y: [test_size, 78]
