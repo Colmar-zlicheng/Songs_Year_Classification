@@ -36,7 +36,6 @@ class Songs_Years(nn.Module):
         self.classification_layer = nn.Sequential(nn.Linear(256, 256), nn.ReLU(),
                                                   nn.Linear(256, 128), nn.ReLU(),
                                                   nn.Linear(128, num_years))
-        self.attn = nn.MultiheadAttention(256, 8, dropout=0.1)
         self.compute_loss = nn.CrossEntropyLoss()
         logger.info(f"{self.name} has {param_size(self)}M parameters")
 
@@ -51,7 +50,6 @@ class Songs_Years(nn.Module):
         cov_coder = self.drop_encoder_cov(self.cov_encoder_layer(cov_coder))  # [B, 128]
 
         feature = torch.cat([avg_coder, cov_coder], dim=1)  # [B, 256]
-        feature = self.attn(feature, feature, feature)[0]
         pred = self.drop(self.classification_layer(feature))
 
         year = input['year'] - self.begin_year
