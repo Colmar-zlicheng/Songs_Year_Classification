@@ -25,16 +25,25 @@ class Songs_Years(nn.Module):
         self.bn_cov = nn.BatchNorm1d(78)
         self.drop_avg = nn.Dropout(0.1)
         self.drop_cov = nn.Dropout(0.1)
-        self.avg_encoder = nn.Sequential(nn.Linear(12, 128), nn.ReLU(), nn.Linear(128, 12))
-        self.cov_encoder = nn.Sequential(nn.Linear(78, 128), nn.ReLU(), nn.Linear(128, 78))
+        self.avg_encoder = nn.Sequential(nn.Linear(12, 128), nn.ReLU(),
+                                         nn.Linear(128, 128), nn.ReLU(),
+                                         nn.Linear(128, 12))
+        self.cov_encoder = nn.Sequential(nn.Linear(78, 128), nn.ReLU(),
+                                         nn.Linear(128, 128), nn.ReLU(),
+                                         nn.Linear(128, 78))
         self.drop_encoder_avg = nn.Dropout(0.1)
         self.drop_encoder_cov = nn.Dropout(0.1)
         self.drop_cov = nn.Dropout(0.1)
-        self.avg_encoder_layer = nn.Sequential(nn.Linear(12, 128), nn.ReLU(), nn.Linear(128, 128))
-        self.cov_encoder_layer = nn.Sequential(nn.Linear(78, 128), nn.ReLU(), nn.Linear(128, 128))
+        self.avg_encoder_layer = nn.Sequential(nn.Linear(12, 128), nn.ReLU(),
+                                         nn.Linear(128, 128), nn.ReLU(),
+                                         nn.Linear(128, 256))
+        self.cov_encoder_layer = nn.Sequential(nn.Linear(78, 128), nn.ReLU(),
+                                         nn.Linear(128, 128), nn.ReLU(),
+                                         nn.Linear(128, 256))
         self.drop = nn.Dropout(0.1)
-        self.classification_layer = nn.Sequential(nn.Linear(256, 128), nn.ReLU(),
-                                                  nn.Linear(128, 128), nn.ReLU(),
+        self.classification_layer = nn.Sequential(nn.Linear(512, 512), nn.ReLU(),
+                                                  nn.Linear(512, 256), nn.ReLU(),
+                                                  nn.Linear(256, 128), nn.ReLU(),
                                                   nn.Linear(128, num_years))
         self.compute_loss = nn.CrossEntropyLoss()
         logger.info(f"{self.name} has {param_size(self)}M parameters")
@@ -49,7 +58,7 @@ class Songs_Years(nn.Module):
         avg_coder = self.drop_encoder_avg(self.avg_encoder_layer(avg_coder))  # [B, 128]
         cov_coder = self.drop_encoder_cov(self.cov_encoder_layer(cov_coder))  # [B, 128]
 
-        feature = torch.cat([avg_coder, cov_coder], dim=1)  # [B, 256]
+        feature = torch.cat([avg_coder, cov_coder], dim=1)  # [B, 512]
         pred = self.drop(self.classification_layer(feature))
 
         year = input['year'] - self.begin_year
