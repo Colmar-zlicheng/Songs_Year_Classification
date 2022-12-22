@@ -36,7 +36,7 @@ def ANN_worker(arg, summary):
     if arg.model == 'Songs':
         model = Songs_Years(num_years=num_years, begin_year=begin_year).to(device)
     else:
-        model = SY_Baseline(num_years=num_years, begin_year=begin_year).to(device)
+        model = SY_Baseline(num_years=num_years, begin_year=begin_year, mode=arg.base_type).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=arg.learning_rate, weight_decay=0.0)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, arg.decay_step, arg.decay_gamma)
 
@@ -47,7 +47,10 @@ def ANN_worker(arg, summary):
         total = 0
         for bidx, input in enumerate(train_bar):
             step_idx = epoch_idx * len(train_loader) + bidx
-            pred, loss = model(input)
+            if arg.model == 'Songs':
+                pred, loss = model(input)
+            else:
+                pred, loss, _ = model(input)
             train_bar.set_description(f"{bar_perfixes['train']} Epoch {epoch_idx} Loss {'%.12f' % loss}")
             optimizer.zero_grad()
             loss.backward()
@@ -69,7 +72,10 @@ def ANN_worker(arg, summary):
         model.eval()
         test_bar = etqdm(test_loader)
         for bidx, input in enumerate(test_bar):
-            pred, loss = model(input)
+            if arg.model == 'Songs':
+                pred, loss = model(input)
+            else:
+                pred, loss, _ = model(input)
             test_bar.set_description(f"{bar_perfixes['test']} Loss {'%.12f' % loss}")
             _, predicted = torch.max(pred.data, 1)
             predicted += begin_year
@@ -83,7 +89,11 @@ def ANN_worker(arg, summary):
             ff.write("Accuracy_test:" + str(acc) + '\n')
 
     logger.info("-----beginning save checkpoints and results-----")
-    save_path = os.path.join('./exp/ANN', arg.exp_id, 'model.ckpt')
+    if arg.model == 'Songs':
+        save_model = 'Songs.ckpt'
+    else:
+        save_model = 'Backbone.ckpt'
+    save_path = os.path.join('./exp/ANN', arg.exp_id, save_model)
     torch.save(model.state_dict(), save_path)
     logger.info("-----successfully save checkpoints-----")
     save_results_ANN(arg=arg, train_acc=train_acc, test_acc=acc)
@@ -106,6 +116,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--model', type=str, default='Songs',
                         choices=['Songs', 'baseline'],
                         help="run whole model or baseline")
+    parser.add_argument('-bt', '--base_type', type=str, default='avg', choices=['avg', 'cov', 'cat'])
 
     if not os.path.exists('./exp'):
         os.mkdir('./exp')
@@ -121,8 +132,9 @@ if __name__ == '__main__':
     else:
         if arg.model == 'Songs':
             model_name = 'Songs'
+            arg.base_type = '--'
         else:
-            model_name = 'Baseline'
+            model_name = f"Baseline_{arg.base_type}"
         if arg.big_dataset is True:
             dataset_name = 'Big'
             arg.train_size = 463715

@@ -11,7 +11,7 @@ def save_results_ANN(arg, train_acc, test_acc):
 
     total = len(open(log_path).readlines())
     if total == 0:
-        csv_writer.writerow(['ID', 'Model',
+        csv_writer.writerow(['ID', 'Model', 'Base_Type'
                              'Dataset', 'Train_Size', 'Test_Size',
                              'Epoch_size', 'Batch_size', 'learning_rate',
                              'decay_step', 'decay_gamma',
@@ -27,7 +27,7 @@ def save_results_ANN(arg, train_acc, test_acc):
         dataset_name = 'Small'
 
     exp = os.path.join('./exp/ANN', arg.exp_id)
-    csv_writer.writerow([str(total), str(arg.model),
+    csv_writer.writerow([str(total), str(arg.model), str(arg.base_type),
                          str(dataset_name), str(arg.train_size), str(arg.test_size),
                          str(arg.epoch_size), str(arg.batch_size), str(arg.learning_rate),
                          str(decay_step), str(arg.decay_gamma),
