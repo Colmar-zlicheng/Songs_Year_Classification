@@ -33,8 +33,8 @@ class Songs_Years(nn.Module):
         self.avg_encoder_layer = nn.Sequential(nn.Linear(12, 128), nn.ReLU(), nn.Linear(128, 128))
         self.cov_encoder_layer = nn.Sequential(nn.Linear(78, 128), nn.ReLU(), nn.Linear(128, 128))
         self.drop = nn.Dropout(0.1)
-        self.classification_layer = nn.Sequential(nn.Linear(256, 256), nn.ReLU(),
-                                                  nn.Linear(256, 128), nn.ReLU(),
+        self.classification_layer = nn.Sequential(nn.Linear(256, 128), nn.ReLU(),
+                                                  nn.Linear(128, 128), nn.ReLU(),
                                                   nn.Linear(128, num_years))
         self.compute_loss = nn.CrossEntropyLoss()
         logger.info(f"{self.name} has {param_size(self)}M parameters")
