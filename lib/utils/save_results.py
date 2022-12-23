@@ -11,7 +11,7 @@ def save_results_ANN(arg, train_acc, test_acc):
 
     total = len(open(log_path).readlines())
     if total == 0:
-        csv_writer.writerow(['ID', 'Model', 'Base_Type'
+        csv_writer.writerow(['ID', 'Model', 'Base_Type',
                              'Dataset', 'Train_Size', 'Test_Size',
                              'Epoch_size', 'Batch_size', 'learning_rate',
                              'decay_step', 'decay_gamma',
