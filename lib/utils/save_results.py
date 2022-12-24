@@ -35,7 +35,7 @@ def save_results_ANN(arg, train_acc, test_acc):
     file.close()
 
 
-def save_results_SVM(arg, acc, correct):
+def save_results_SVM(arg, acc, correct, val_acc):
     if not os.path.exists('./results'):
         os.mkdir('./results')
     log_path = './results/SVM_results.csv'
@@ -45,11 +45,13 @@ def save_results_SVM(arg, acc, correct):
     total = len(open(log_path).readlines())
     if total == 0:
         csv_writer.writerow(['ID', 'type', 'train_size', 'test_size',
-                             'C', 'kernel',
+                             'C', 'kernel', 'val_acc',
                              'acc', 'correct', 'exp'])
         total += 1
     exp = os.path.join('./exp/SVM', arg.exp_id)
+    if val_acc != '--':
+        val_acc = str('%.2f' % (val_acc*100))+'%'
     csv_writer.writerow([str(total), str(arg.type), str(arg.train_size), str(arg.test_size),
-                         str(arg.C), str(arg.kernel_type),
+                         str(arg.C), str(arg.kernel_type), str(val_acc),
                          str('%.2f' % (acc*100))+'%', str(correct), str(exp)])
     file.close()

@@ -25,13 +25,21 @@ def SVM_worker(arg):
         data_test = torch.cat([data['timbre_avg_test'], data['timbre_cov_test']], dim=1)
     print(f"Start training with {arg.type} ...")
     svc.fit(data_train, data['year_train'])
+    if arg.do_val is True:
+        train_result = svc.predict(data_train)
+        train_result = torch.tensor(train_result)
+        correct = (train_result == data['year_train']).sum().item()
+        val_acc = correct / data['year_train'].shape[0]
+        print("Accuracy:", '%.2f' % (val_acc * 100), "%")
+    else:
+        val_acc = '--'
     print("Start testing...")
     test_result = svc.predict(data_test)
     test_result = torch.tensor(test_result)
     correct = (test_result == data['year_test']).sum().item()
     acc = correct / data['year_test'].shape[0]
     print("Accuracy:", '%.2f' % (acc * 100), "%")
-    save_results_SVM(arg=arg, acc=acc, correct=correct)
+    save_results_SVM(arg=arg, acc=acc, correct=correct, val_acc=val_acc)
     save_model = os.path.join(save_dir, 'model.m')
     joblib.dump(svc, save_model)
     save_acc = os.path.join(save_dir, 'acc.txt')
@@ -51,6 +59,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--type', type=str, default='avg', choices=['avg', 'cov', 'cat'])
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('-exp', '--exp_id', type=str)
+    parser.add_argument('-v', '--do_val', action='store_true', help="do validation with train set")
 
     arg = parser.parse_args()
 
