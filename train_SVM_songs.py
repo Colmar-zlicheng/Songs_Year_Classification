@@ -48,7 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--C', type=float, default=10.0)
     parser.add_argument('-kt', '--kernel_type', type=str, default='rbf',
                         choices=['linear', 'poly', 'rbf', 'sigmoid'])
-    parser.add_argument('-t', '--type', type=str, default='avg', choices=['avg', 'cov', 'cat '])
+    parser.add_argument('-t', '--type', type=str, default='avg', choices=['avg', 'cov', 'cat'])
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('-exp', '--exp_id', type=str)
 
