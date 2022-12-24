@@ -9,6 +9,9 @@ SVM_result_path = './results/SVM_results.csv'
 
 
 def main_ANN():
+    if not os.path.exists(ANN_exp_path):
+        print("no such path: ", ANN_exp_path)
+        return
     ANN_exp_dir = os.listdir(ANN_exp_path)
     if not os.path.exists(ANN_result_path):
         print("no such file: ", ANN_result_path)
@@ -33,6 +36,9 @@ def main_ANN():
             shutil.rmtree(dir)
 
 def main_SVM():
+    if not os.path.exists(SVM_exp_path):
+        print("no such path: ", SVM_exp_path)
+        return
     if not os.path.exists(SVM_result_path):
         print("no such file: ", SVM_result_path)
         return
