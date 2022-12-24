@@ -35,6 +35,7 @@ def main_ANN():
             input("Confirm ?")
             shutil.rmtree(dir)
 
+
 def main_SVM():
     if not os.path.exists(SVM_exp_path):
         print("no such path: ", SVM_exp_path)
@@ -61,6 +62,7 @@ def main_SVM():
             print(f"remove {dir}")
             input("Confirm ?")
             shutil.rmtree(dir)
+
 
 if __name__ == '__main__':
     # clean the dummy exp not in ANN_results.csv
