@@ -10,7 +10,7 @@ def emb1d(pos, num_pos_feats=128, temperature=10000):
     pos = pos * scale
     dim_t = torch.arange(num_pos_feats, dtype=torch.float32, device=pos.device)
     dim_t = temperature**(2 * (torch.div(dim_t, 2, rounding_mode='floor')) / num_pos_feats)
-    posemb = pos/ dim_t
+    posemb = pos / dim_t
     posemb = torch.stack((posemb[..., 0::2].sin(), posemb[..., 1::2].cos()), dim=-1).flatten(-2)
     return posemb
 
@@ -35,11 +35,11 @@ class Songs_Years(nn.Module):
         self.drop_encoder_cov = nn.Dropout(0.1)
         self.drop_cov = nn.Dropout(0.1)
         self.avg_encoder_layer = nn.Sequential(nn.Linear(12, 128), nn.ReLU(),
-                                         nn.Linear(128, 128), nn.ReLU(),
-                                         nn.Linear(128, 256))
+                                               nn.Linear(128, 128), nn.ReLU(),
+                                               nn.Linear(128, 256))
         self.cov_encoder_layer = nn.Sequential(nn.Linear(78, 128), nn.ReLU(),
-                                         nn.Linear(128, 128), nn.ReLU(),
-                                         nn.Linear(128, 256))
+                                               nn.Linear(128, 128), nn.ReLU(),
+                                               nn.Linear(128, 256))
         self.drop = nn.Dropout(0.1)
         self.classification_layer = nn.Sequential(nn.Linear(512, 512), nn.ReLU(),
                                                   nn.Linear(512, 256), nn.ReLU(),
