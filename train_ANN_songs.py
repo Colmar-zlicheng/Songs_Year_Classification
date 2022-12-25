@@ -45,12 +45,12 @@ def ANN_worker(arg, summary):
         train_bar = etqdm(train_loader)
         correct = 0
         total = 0
-        for bidx, input in enumerate(train_bar):
+        for bidx, inputs in enumerate(train_bar):
             step_idx = epoch_idx * len(train_loader) + bidx
             if arg.model == 'Songs':
-                pred, loss = model(input)
+                pred, loss = model(inputs)
             else:
-                pred, loss, _ = model(input)
+                pred, loss, _ = model(inputs)
             train_bar.set_description(f"{bar_perfixes['train']} Epoch {epoch_idx} Loss {'%.12f' % loss}")
             optimizer.zero_grad()
             loss.backward()
@@ -59,8 +59,8 @@ def ANN_worker(arg, summary):
                 summary.add_scalar(f"scalar/loss", loss, global_step=step_idx, walltime=None)
             _, predicted = torch.max(pred.data, 1)
             predicted += begin_year
-            total += input['year'].size(0)
-            correct += (predicted == input['year']).sum().item()
+            total += inputs['year'].size(0)
+            correct += (predicted == inputs['year']).sum().item()
         train_acc = 100 * correct / total
         summary.add_scalar(f"scalar/train_acc", train_acc, global_step=epoch_idx, walltime=None)
         scheduler.step()
@@ -71,16 +71,16 @@ def ANN_worker(arg, summary):
         total = 0
         model.eval()
         test_bar = etqdm(test_loader)
-        for bidx, input in enumerate(test_bar):
+        for bidx, inputs in enumerate(test_bar):
             if arg.model == 'Songs':
-                pred, loss = model(input)
+                pred, loss = model(inputs)
             else:
-                pred, loss, _ = model(input)
+                pred, loss, _ = model(inputs)
             test_bar.set_description(f"{bar_perfixes['test']} Loss {'%.12f' % loss}")
             _, predicted = torch.max(pred.data, 1)
             predicted += begin_year
-            total += input['year'].size(0)
-            correct += (predicted == input['year']).sum().item()
+            total += inputs['year'].size(0)
+            correct += (predicted == inputs['year']).sum().item()
             acc = 100 * correct / total
         print('Accuracy on test set: {} %'.format('%.2f' % acc))
         save_acc_path = os.path.join('./exp/ANN', arg.exp_id, 'acc_test_txt')

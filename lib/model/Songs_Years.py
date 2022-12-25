@@ -48,9 +48,9 @@ class Songs_Years(nn.Module):
         self.compute_loss = nn.CrossEntropyLoss()
         logger.info(f"{self.name} has {param_size(self)}M parameters")
 
-    def forward(self, input):
-        avg = input['timbre_avg']
-        cov = input['timbre_cov']
+    def forward(self, inputs):
+        avg = inputs['timbre_avg']
+        cov = inputs['timbre_cov']
 
         avg_coder = self.bn_avg(self.drop_avg(self.avg_encoder(avg)) + avg)  # [B, 12]
         cov_coder = self.bn_cov(self.drop_cov(self.cov_encoder(cov)) + cov)  # [B, 78]
@@ -61,7 +61,7 @@ class Songs_Years(nn.Module):
         feature = torch.cat([avg_coder, cov_coder], dim=1)  # [B, 512]
         pred = self.drop(self.classification_layer(feature))
 
-        year = input['year'] - self.begin_year
+        year = inputs['year'] - self.begin_year
         loss = self.compute_loss(pred, year)
         return pred, loss
 
