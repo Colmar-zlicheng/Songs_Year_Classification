@@ -24,6 +24,11 @@ def compute_age_SVM(args):
         SVM_exp_dir.pop(pop_id)
     for idir in etqdm(SVM_exp_dir):
         dir = os.path.join('./exp/SVM', idir)
+        save_name = f"age_{arg.age}_acc.txt"
+        save_acc = os.path.join(dir, save_name)
+        if os.path.exists(save_acc):
+            print(f"{save_acc} exists")
+            continue
 
         set_dir = ckpt = os.path.join(dir, 'setting.txt')
         with open(set_dir, 'r') as f:
@@ -48,7 +53,7 @@ def compute_age_SVM(args):
         correct = ((predicts // args.age) == (data['year_test'] // args.age)).sum().item()
         age_acc = correct / data['year_test'].shape[0]
         print("Age accuracy:", '%.2f' % (age_acc * 100), "%")
-        save_acc = os.path.join(dir, 'age_acc.txt')
+
         with open(save_acc, 'w') as ff:
             ff.write("Correct:" + str(correct) + '\n')
             ff.write("Accuracy:" + str('%.2f' % (age_acc * 100)) + '%' + '\n')
