@@ -56,3 +56,26 @@ def save_results_SVM(arg, acc, correct, val_acc):
                          str(arg.C), str(arg.kernel_type), str(val_acc),
                          str('%.2f' % (acc * 100)) + '%', str(correct), str(exp)])
     file.close()
+
+
+def save_results_KNN(arg, acc, correct, age_acc, age_correct, val_acc):
+    if not os.path.exists('./results'):
+        os.mkdir('./results')
+    log_path = './results/KNN_results.csv'
+    file = open(log_path, 'a+', encoding='utf-8', newline='')
+    csv_writer = csv.writer(file)
+
+    total = len(open(log_path).readlines())
+    if total == 0:
+        csv_writer.writerow(['ID', 'type', 'train_size', 'test_size',
+                             'val_acc',
+                             'acc', 'correct', 'age_acc', 'age_correct', 'exp'])
+        total += 1
+    exp = os.path.join('./exp/KNN', arg.exp_id)
+    if val_acc != '--':
+        val_acc = str('%.2f' % (val_acc * 100)) + '%'
+    csv_writer.writerow([str(total), str(arg.type), str(arg.train_size), str(arg.test_size),
+                         str(val_acc),
+                         str('%.2f' % (acc * 100)) + '%', str(correct),
+                         str('%.2f' % (age_acc * 100)) + '%', str(age_correct), str(exp)])
+    file.close()
