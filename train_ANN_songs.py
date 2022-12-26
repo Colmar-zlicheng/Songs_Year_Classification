@@ -23,8 +23,10 @@ def ANN_worker(arg, summary):
     else:
         begin_year = 1969
         num_years = 42
-        train_data = Songs(data_split='train', train_size=arg.train_size, test_size=arg.test_size, device=device, seed=arg.seed)
-        test_data = Songs(data_split='test', train_size=arg.train_size, test_size=arg.test_size, device=device, seed=arg.seed)
+        train_data = Songs(data_split='train', train_size=arg.train_size, test_size=arg.test_size, device=device,
+                           seed=arg.seed)
+        test_data = Songs(data_split='test', train_size=arg.train_size, test_size=arg.test_size, device=device,
+                          seed=arg.seed)
     train_loader = torch.utils.data.DataLoader(dataset=train_data,
                                                batch_size=arg.batch_size,
                                                shuffle=True,
@@ -45,12 +47,10 @@ def ANN_worker(arg, summary):
         train_bar = etqdm(train_loader)
         correct = 0
         total = 0
+        correct_age = 0
         for bidx, inputs in enumerate(train_bar):
             step_idx = epoch_idx * len(train_loader) + bidx
-            if arg.model == 'Songs':
-                pred, loss = model(inputs)
-            else:
-                pred, loss, _ = model(inputs)
+            pred, loss = model(inputs)
             train_bar.set_description(f"{bar_perfixes['train']} Epoch {epoch_idx} Loss {'%.12f' % loss}")
             optimizer.zero_grad()
             loss.backward()
@@ -61,38 +61,46 @@ def ANN_worker(arg, summary):
             predicted += begin_year
             total += inputs['year'].size(0)
             correct += (predicted == inputs['year']).sum().item()
+            correct_age += ((predicted // arg.age) == (inputs['year'] // arg.age)).sum().item()
         train_acc = 100 * correct / total
+        train_age_acc = 100 * correct_age / total
         summary.add_scalar(f"scalar/train_acc", train_acc, global_step=epoch_idx, walltime=None)
+        summary.add_scalar(f"scalar/train_age_acc", train_age_acc, global_step=epoch_idx, walltime=None)
         scheduler.step()
-        print(f"Current LR: {[group['lr'] for group in optimizer.param_groups]}, Train Accuracy: {'%.2f' % train_acc}%")
+        print(f"Current LR: {[group['lr'] for group in optimizer.param_groups]}, Train Accuracy: {'%.2f' % train_acc}%,"
+              f" Train Age Accuracy: {'%.2f' % train_age_acc}%")
 
     with torch.no_grad():
         correct = 0
+        correct_age = 0
         total = 0
         model.eval()
         test_bar = etqdm(test_loader)
         for bidx, inputs in enumerate(test_bar):
-            if arg.model == 'Songs':
-                pred, loss = model(inputs)
-            else:
-                pred, loss, _ = model(inputs)
+            pred, loss = model(inputs)
             test_bar.set_description(f"{bar_perfixes['test']} Loss {'%.12f' % loss}")
             _, predicted = torch.max(pred.data, 1)
             predicted += begin_year
             total += inputs['year'].size(0)
             correct += (predicted == inputs['year']).sum().item()
-            acc = 100 * correct / total
-        print('Accuracy on test set: {} %'.format('%.2f' % acc))
-        save_acc_path = os.path.join('./exp/ANN', arg.exp_id, 'acc_test_txt')
+            correct_age += ((predicted // arg.age) == (inputs['year'] // arg.age)).sum().item()
+        acc = 100 * correct / total
+        age_acc = 100 * correct_age / total
+        print('Accuracy on test set: {} %, Age {} Accuracy: {}'.format('%.2f' % acc, arg.age, '%.2f' % age_acc))
+        save_acc_path = os.path.join('./exp/ANN', arg.exp_id, 'acc_test.txt')
+        save_age_acc_path = os.path.join('./exp/ANN', arg.exp_id, f"acc_age{arg.age}_test.txt")
         with open(save_acc_path, 'w') as ff:
             ff.write("Correct_test:" + str(correct) + '\n')
-            ff.write("Accuracy_test:" + str(acc) + '\n')
+            ff.write("Accuracy_test:" + str(acc) + '%' + '\n')
+        with open(save_age_acc_path, 'w') as fff:
+            fff.write("Correct_age_test:" + str(correct_age) + '\n')
+            fff.write("Age Accuracy_test:" + str(age_acc) + '%' + '\n')
 
     logger.info("-----beginning save checkpoints and results-----")
     if arg.model == 'Songs':
         save_model = 'Songs.ckpt'
     else:
-        save_model = 'Backbone.ckpt'
+        save_model = 'Baseline.ckpt'
     save_path = os.path.join('./exp/ANN', arg.exp_id, save_model)
     torch.save(model.state_dict(), save_path)
     logger.info("-----successfully save checkpoints-----")
@@ -102,11 +110,12 @@ def ANN_worker(arg, summary):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--batch_size', type=int, default=100)
-    parser.add_argument('-e', '--epoch_size', type=int, default=50)
+    parser.add_argument('-a', '--age', type=int, default=10)
+    parser.add_argument('-b', '--batch_size', type=int, default=200)
+    parser.add_argument('-e', '--epoch_size', type=int, default=300)
     parser.add_argument('-lr', '--learning_rate', type=float, default=0.001)
-    parser.add_argument('-ds', '--decay_step', type=int, default=30)
-    parser.add_argument('-dg', '--decay_gamma', type=float, default=0.1)
+    parser.add_argument('-ds', '--decay_step', type=int, default=50)
+    parser.add_argument('-dg', '--decay_gamma', type=float, default=0.5)
     parser.add_argument('-log', '--log_interval', type=int, default=50)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('-exp', '--exp_id', type=str)

@@ -33,7 +33,6 @@ class Songs_Years(nn.Module):
                                          nn.Linear(128, 78))
         self.drop_encoder_avg = nn.Dropout(0.1)
         self.drop_encoder_cov = nn.Dropout(0.1)
-        self.drop_cov = nn.Dropout(0.1)
         self.avg_encoder_layer = nn.Sequential(nn.Linear(12, 128), nn.ReLU(),
                                                nn.Linear(128, 128), nn.ReLU(),
                                                nn.Linear(128, 256))
@@ -55,8 +54,8 @@ class Songs_Years(nn.Module):
         avg_coder = self.bn_avg(self.drop_avg(self.avg_encoder(avg)) + avg)  # [B, 12]
         cov_coder = self.bn_cov(self.drop_cov(self.cov_encoder(cov)) + cov)  # [B, 78]
 
-        avg_coder = self.drop_encoder_avg(self.avg_encoder_layer(avg_coder))  # [B, 128]
-        cov_coder = self.drop_encoder_cov(self.cov_encoder_layer(cov_coder))  # [B, 128]
+        avg_coder = self.drop_encoder_avg(self.avg_encoder_layer(avg_coder))  # [B, 256]
+        cov_coder = self.drop_encoder_cov(self.cov_encoder_layer(cov_coder))  # [B, 256]
 
         feature = torch.cat([avg_coder, cov_coder], dim=1)  # [B, 512]
         pred = self.drop(self.classification_layer(feature))
@@ -67,6 +66,7 @@ class Songs_Years(nn.Module):
 
 
 class SY_Baseline(nn.Module):
+
     def __init__(self, num_years=90, begin_year=1922, mode='avg'):
         super().__init__()
         self.name = type(self).__name__
@@ -78,22 +78,21 @@ class SY_Baseline(nn.Module):
             input_dim = 78
         else:
             input_dim = 90
-        self.embed = nn.Sequential(nn.Linear(input_dim, 128), nn.ReLU(), nn.Linear(128, 128))
+        self.begin_year = begin_year
+        self.bn_x = nn.BatchNorm1d(input_dim)
+        self.drop_x = nn.Dropout(0.1)
+        self.x_encoder = nn.Sequential(nn.Linear(input_dim, 128), nn.ReLU(),
+                                         nn.Linear(128, 128), nn.ReLU(),
+                                         nn.Linear(128, input_dim))
 
-        self.attn1 = nn.MultiheadAttention(128, 8, dropout=0.1)
-        self.drop1 = nn.Dropout(0.1)
-        self.norm1 = nn.BatchNorm1d(128)
-        self.attn2 = nn.MultiheadAttention(128, 8, dropout=0.1)
-        self.drop2 = nn.Dropout(0.1)
-        self.norm2 = nn.BatchNorm1d(128)
-
-        self.ffn = nn.Sequential(nn.Linear(128, 128), nn.ReLU(),
-                                 nn.Linear(128, 64), nn.ReLU(),
-                                 nn.Linear(64, num_years))
-        self.drop3 = nn.Dropout(0.1)
-        self.norm3 = nn.BatchNorm1d(num_years)
-
-        self.decoder = nn.Sequential(nn.Linear(128, 128), nn.ReLU(), nn.Linear(128, num_years))
+        self.drop_encoder_x = nn.Dropout(0.1)
+        self.x_encoder_layer = nn.Sequential(nn.Linear(input_dim, 128), nn.ReLU(),
+                                               nn.Linear(128, 128), nn.ReLU(),
+                                               nn.Linear(128, 256))
+        self.drop = nn.Dropout(0.1)
+        self.classification_layer = nn.Sequential(nn.Linear(256, 256), nn.ReLU(),
+                                                  nn.Linear(256, 128), nn.ReLU(),
+                                                  nn.Linear(128, num_years))
         self.compute_loss = nn.CrossEntropyLoss()
         logger.info(f"{self.name} has {param_size(self)}M parameters")
 
@@ -107,17 +106,20 @@ class SY_Baseline(nn.Module):
         x = self.norm3(x)
         return x
 
-    def forward(self, input):
+    def forward(self, inputs):
         if self.mode == 'avg':
-            x = input['timbre_avg']
+            x = inputs['timbre_avg']
         elif self.mode == 'cov':
-            x = input['timbre_cov']
+            x = inputs['timbre_cov']
         else:
-            x = torch.cat([input['timbre_avg'], input['timbre_cov']], dim=1)
+            x = torch.cat([inputs['timbre_avg'], inputs['timbre_cov']], dim=1)
 
-        x = self.encoder_layer(x)
-        # pred = self.decoder(x)
+        x_coder = self.bn_x(self.drop_x(self.x_encoder(x)) + x)  # [B, 12]
 
-        year = input['year'] - self.begin_year
-        loss = self.compute_loss(x, year)
-        return x, loss, x
+        x_coder = self.drop_encoder_x(self.x_encoder_layer(x_coder))  # [B, 256]
+
+        pred = self.drop(self.classification_layer(x_coder))
+
+        year = inputs['year'] - self.begin_year
+        loss = self.compute_loss(pred, year)
+        return pred, loss
