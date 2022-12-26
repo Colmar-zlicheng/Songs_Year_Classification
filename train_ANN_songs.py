@@ -86,7 +86,7 @@ def ANN_worker(arg, summary):
             correct_age += ((predicted // arg.age) == (inputs['year'] // arg.age)).sum().item()
         acc = 100 * correct / total
         age_acc = 100 * correct_age / total
-        print('Accuracy on test set: {} %, Age {} Accuracy: {}'.format('%.2f' % acc, arg.age, '%.2f' % age_acc))
+        print('Accuracy on test set: {}%, Age {} Accuracy: {}%'.format('%.2f' % acc, arg.age, '%.2f' % age_acc))
         save_acc_path = os.path.join('./exp/ANN', arg.exp_id, 'acc_test.txt')
         save_age_acc_path = os.path.join('./exp/ANN', arg.exp_id, f"acc_age{arg.age}_test.txt")
         with open(save_acc_path, 'w') as ff:
