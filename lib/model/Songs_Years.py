@@ -96,16 +96,6 @@ class SY_Baseline(nn.Module):
         self.compute_loss = nn.CrossEntropyLoss()
         logger.info(f"{self.name} has {param_size(self)}M parameters")
 
-    def encoder_layer(self, x):
-        x = emb1d(self.embed(x))
-        x = x + self.drop1(self.attn1(x, x, x)[0])
-        x = self.norm1(x)
-        x = x + self.drop2(self.attn2(x, x, x)[0])
-        x = self.norm2(x)
-        x = self.drop3(self.ffn(x))
-        x = self.norm3(x)
-        return x
-
     def forward(self, inputs):
         if self.mode == 'avg':
             x = inputs['timbre_avg']
