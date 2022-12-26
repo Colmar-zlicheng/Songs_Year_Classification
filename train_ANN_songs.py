@@ -104,7 +104,7 @@ def ANN_worker(arg, summary):
     save_path = os.path.join('./exp/ANN', arg.exp_id, save_model)
     torch.save(model.state_dict(), save_path)
     logger.info("-----successfully save checkpoints-----")
-    save_results_ANN(arg=arg, train_acc=train_acc, test_acc=acc)
+    save_results_ANN(arg=arg, train_acc=train_acc, train_age_acc=train_age_acc, test_acc=acc, test_age_acc=age_acc)
     logger.info("-----successfully save results-----")
 
 
