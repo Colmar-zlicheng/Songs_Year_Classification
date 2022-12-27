@@ -1,0 +1,6 @@
+ID,Model,Base_Type,Dataset,Train_Size,Test_Size,Epoch_size,Batch_size,learning_rate,decay_step,decay_gamma,age,train_acc,train_age_acc,test_acc,test_age_acc,exp
+1,Songs,--,Small,2000,200,300,200,0.001,50,0.5,10,73.80%,86.46%,35.24%,62.10%,./exp/ANN/Songs_Small_300_d50-0.5_2022_1226_1240_37
+2,baseline,avg,Small,2000,200,300,200,0.001,50,0.5,10,32.83%,55.88%,20.58%,46.71%,./exp/ANN/Baseline_avg_Small_300_d50-0.5_2022_1226_1318_34
+3,baseline,cov,Small,2000,200,300,200,0.001,50,0.5,10,44.41%,69.00%,25.75%,53.31%,./exp/ANN/Baseline_cov_Small_300_d50-0.5_2022_1226_1350_55
+4,baseline,cat,Small,2000,200,300,200,0.001,50,0.5,10,44.86%,71.79%,26.35%,57.82%,./exp/ANN/Baseline_cat_Small_300_d50-0.5_2022_1226_1423_08
+5,Songs,--,Big,463715,51630,200,200,0.001,50,0.5,10,19.91%,70.05%,8.53%,61.90%,./exp/ANN/Songs_Big_200_d50-0.5_2022_1227_0035_01
