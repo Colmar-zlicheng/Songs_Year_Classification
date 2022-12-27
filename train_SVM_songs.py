@@ -53,10 +53,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--train_size', type=int, default=2000)
     parser.add_argument('--test_size', type=int, default=200)
-    parser.add_argument('-c', '--C', type=float, default=10.0)
+    parser.add_argument('-c', '--C', type=float, default=13.0)
     parser.add_argument('-kt', '--kernel_type', type=str, default='rbf',
                         choices=['linear', 'poly', 'rbf', 'sigmoid'])
-    parser.add_argument('-t', '--type', type=str, default='avg', choices=['avg', 'cov', 'cat'])
+    parser.add_argument('-t', '--type', type=str, default='cat', choices=['avg', 'cov', 'cat'])
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('-exp', '--exp_id', type=str)
     parser.add_argument('-v', '--do_val', action='store_true', help="do validation with train set")
