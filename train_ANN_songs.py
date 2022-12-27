@@ -119,7 +119,7 @@ if __name__ == '__main__':
     parser.add_argument('-log', '--log_interval', type=int, default=50)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('-exp', '--exp_id', type=str)
-    parser.add_argument('-bd', '--big_dataset', action='store_true', help="use big dataset")
+    parser.add_argument('-bd', '--big_dataset', action='store_true', help="use whole dataset")
     parser.add_argument('--train_size', type=int, default=2000)
     parser.add_argument('--test_size', type=int, default=200)
     parser.add_argument('-m', '--model', type=str, default='Songs',
